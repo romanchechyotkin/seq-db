@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/ozontech/seq-db/cache"
-	"github.com/ozontech/seq-db/conf"
+	"github.com/ozontech/seq-db/config"
 	"github.com/ozontech/seq-db/consts"
 	"github.com/ozontech/seq-db/disk"
 	"github.com/ozontech/seq-db/seq"
@@ -18,11 +18,11 @@ type Table struct {
 }
 
 func (Table) GetIDBlockIndexByLID(lid uint32) uint32 {
-	return lid / consts.IDsPerBlock
+	return lid / uint32(consts.IDsPerBlock)
 }
 
 func (Table) BlockStartLID(blockIndex uint32) uint32 {
-	return blockIndex * consts.IDsPerBlock
+	return blockIndex * uint32(consts.IDsPerBlock)
 }
 
 type Loader struct {
@@ -31,7 +31,7 @@ type Loader struct {
 	cacheMIDs   *cache.Cache[[]byte]
 	cacheRIDs   *cache.Cache[[]byte]
 	cacheParams *cache.Cache[BlockParams]
-	fracVersion conf.BinaryDataVersion
+	fracVersion config.BinaryDataVersion
 }
 
 func (l *Loader) GetMIDsBlock(index uint32, buf []uint64) (BlockMIDs, error) {

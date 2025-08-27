@@ -135,7 +135,11 @@ func (g *GrpcV1) doSearch(
 	}
 
 	searchTr := tr.NewChild("search iteratively")
-	qpr, err := g.searchData.searcher.SearchDocs(ctx, g.fracManager.GetAllFracs(), searchParams)
+	qpr, err := g.searchData.searcher.SearchDocs(
+		ctx,
+		g.fracManager.GetAllFracs(),
+		searchParams,
+	)
 	searchTr.Done()
 	if err != nil {
 		if code, ok := parseStoreError(err); ok {

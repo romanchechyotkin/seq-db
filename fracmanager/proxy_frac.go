@@ -12,6 +12,7 @@ import (
 	"github.com/ozontech/seq-db/logger"
 	"github.com/ozontech/seq-db/metric"
 	"github.com/ozontech/seq-db/seq"
+	"github.com/ozontech/seq-db/storage"
 	"github.com/ozontech/seq-db/util"
 )
 
@@ -32,10 +33,6 @@ var ErrSealingFractionSuicided = errors.New("sealing fraction is suicided")
  *  --------------------------------------------------------
  *  All other states are impossible.
  */
-
-var (
-	_ frac.Fraction = (*proxyFrac)(nil)
-)
 
 type proxyFrac struct {
 	fp *fractionProvider
@@ -160,6 +157,24 @@ func (f *proxyFrac) trySetSuicided() (*frac.Active, *frac.Sealed, bool) {
 	}
 
 	return active, sealed, sealing
+}
+
+func (f *proxyFrac) Offload(ctx context.Context, u storage.Uploader) (bool, error) {
+	f.useMu.RLock()
+
+	if f.isSealingState() {
+		f.useMu.RUnlock()
+		f.sealWg.Wait()
+
+		if c := f.cur(); c != nil {
+			return c.Offload(ctx, u)
+		}
+
+		return false, nil
+	}
+
+	f.useMu.RUnlock()
+	return f.cur().Offload(ctx, u)
 }
 
 func (f *proxyFrac) Suicide() {

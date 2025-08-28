@@ -249,6 +249,15 @@ type Config struct {
 	Tracing struct {
 		SamplingRate float64 `config:"sampling_rate" default:"0.01"`
 	} `config:"tracing"`
+
+	// Additional filtering options
+	Filtering struct {
+		// If a search query time range overlaps with the [from; to] range
+		// the search query will be `AND`-ed with an additional predicate with the provided query expression
+		Query string    `config:"query"`
+		From  time.Time `config:"from"`
+		To    time.Time `config:"to"`
+	} `config:"filtering"`
 }
 
 type Bytes units.Base2Bytes

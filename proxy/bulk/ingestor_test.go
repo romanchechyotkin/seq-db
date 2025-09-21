@@ -15,6 +15,7 @@ import (
 	"github.com/ozontech/seq-db/consts"
 	"github.com/ozontech/seq-db/frac"
 	"github.com/ozontech/seq-db/mappingprovider"
+	"github.com/ozontech/seq-db/network/circuitbreaker"
 	"github.com/ozontech/seq-db/packer"
 	"github.com/ozontech/seq-db/seq"
 	"github.com/ozontech/seq-db/storage"
@@ -83,6 +84,9 @@ func TestProcessDocuments(t *testing.T) {
 		DocsZSTDCompressLevel:  -1,
 		MetasZSTDCompressLevel: -1,
 		MaxDocumentSize:        int(units.KiB),
+		BulkCircuit: circuitbreaker.Config{
+			CustomSuffix: "TestProcessDocuments",
+		},
 	}
 
 	now := time.Now().UTC()
@@ -486,6 +490,9 @@ func BenchmarkProcessDocuments(b *testing.B) {
 		MappingProvider:        mappingProvider,
 		CaseSensitive:          false,
 		MaxTokenSize:           int(units.KiB),
+		BulkCircuit: circuitbreaker.Config{
+			CustomSuffix: "BenchProcessDocuments",
+		},
 	}
 
 	ingestor := NewIngestor(cfg, &FakeClient{})
@@ -563,7 +570,13 @@ func TestProcessDocumentType(t *testing.T) {
 		client := &FakeClient{}
 		mp, err := mappingprovider.New("", mappingprovider.WithMapping(map[string]seq.MappingTypes{}))
 		r.NoError(err)
-		ingestor := NewIngestor(IngestorConfig{MaxInflightBulks: 1, MappingProvider: mp}, client)
+		ingestor := NewIngestor(IngestorConfig{
+			MaxInflightBulks: 1,
+			MappingProvider:  mp,
+			BulkCircuit: circuitbreaker.Config{
+				CustomSuffix: "TestProcessDocumentType",
+			},
+		}, client)
 		defer ingestor.Stop()
 
 		stop := false

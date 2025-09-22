@@ -542,10 +542,10 @@ func (s *SingleTestSuite) TestSealedMultiFetch() {
 }
 
 func TestSingleSuite(t *testing.T) {
-	for _, cfg := range suites.SingleEnvs() {
-		cfg := cfg
+	for i, cfg := range suites.SingleEnvs() {
 		t.Run(cfg.Name, func(t *testing.T) {
 			t.Parallel()
+			cfg.Name = fmt.Sprintf("%s%d", cfg.Name, i)
 			suite.Run(t, NewSingleTestSuite(cfg))
 		})
 	}
